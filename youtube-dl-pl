@@ -31,7 +31,7 @@ while getopts ":ae:dh" opt; do
             DRY_RUN=1
             ;;
         h) # help
-            help
+            usage
             ;;
         :)
             echo "${OPTARG} requires argument"
