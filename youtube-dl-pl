@@ -1,0 +1,52 @@
+#!/bin/bash
+
+function usage() {
+    echo "$0 usage:" && grep " .)\ #" $0 
+    exit 0
+}
+
+
+function get_yt_dl() {
+    exe=$(which yt-dlp)
+    if [[ -z "${exe}" ]]; then
+        which youtube-dl
+    else
+        echo ${exe}
+    fi
+}
+
+DRY_RUN=0
+EXTERNAL_DOWNLOADER_ARGS=""
+YOUTUBE_DL_OPTS="--format best --audio-quality 160k"
+YOUTUBE_DL_EXE="$(get_yt_dl)"
+while getopts ":ae:dh" opt; do
+    case "${opt}" in
+        a) # audio only download
+            YOUTUBE_DL_OPTS="--format bestaudio --extract-audio --audio-format mp3 --audio-quality 160K"
+            ;;
+        e) # use an external downloader
+            EXTERNAL_DOWNLOADER_ARGS="--external-downloader ${OPTARG}"
+            ;;
+        d) # run a dry run and show the arguments
+            DRY_RUN=1
+            ;;
+        h) # help
+            help
+            ;;
+        :)
+            echo "${OPTARG} requires argument"
+            exit 1
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+PLAYLIST_ARGUMENT=$1
+
+echo "Downloading playlist ${PLAYLIST_ARGUMENT} using ${YOUTUBE_DL_EXE} ${EXTERNAL_DOWNLOADER_ARGS} ${YOUTUBE_DL_OPTS}"
+if [[ $DRY_RUN -ne 1 ]]; then
+    $YOUTUBE_DL_EXE ${EXTERNAL_DOWNLOADER_ARGS} -N 3 --ignore-errors ${YOUTUBE_DL_OPTS} --output "%(title)s.%(ext)s" --yes-playlist $PLAYLIST_ARGUMENT
+fi
